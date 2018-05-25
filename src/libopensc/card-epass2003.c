@@ -740,11 +740,11 @@ construct_mac_tlv(struct sc_card *card, unsigned char *apdu_buf, size_t data_tlv
 		memcpy(mac_tlv + 2, &mac[mac_len - 16], 8);
 	}
 	else {
-		unsigned char iv[8] = { 0 };
+		unsigned char iv[EVP_MAX_IV_LENGTH] = { 0 };
 		unsigned char tmp[8] = { 0 };
 		des_encrypt_cbc(exdata->sk_mac, 8, icv, apdu_buf, mac_len, mac);
 		des_decrypt_cbc(&exdata->sk_mac[8], 8, iv, &mac[mac_len - 8], 8, tmp);
-		memset(iv, 0x00, 8);
+		memset(iv, 0x00, sizeof iv);
 		des_encrypt_cbc(exdata->sk_mac, 8, iv, tmp, 8, mac_tlv + 2);
 	}
 
@@ -937,6 +937,9 @@ decrypt_response(struct sc_card *card, unsigned char *in, unsigned char *out, si
 	else {
 		return -1;
 	}
+
+	if (in_len < 2)
+		return -1;
 
 	/* decrypt */
 	if (KEY_TYPE_AES == exdata->smtype)
