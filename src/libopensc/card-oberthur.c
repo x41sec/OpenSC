@@ -2113,6 +2113,10 @@ auth_read_binary(struct sc_card *card, unsigned int offset,
 	bn[1].data = NULL;
 
 	LOG_FUNC_CALLED(card->ctx);
+
+	if (!auth_current_ef)
+		LOG_TEST_RET(card->ctx, SC_ERROR_INVALID_ARGUMENTS, "Invalid auth_current_ef");
+
 	sc_log(card->ctx,
 	       "offset %i; size %"SC_FORMAT_LEN_SIZE_T"u; flags 0x%lX",
 	       offset, count, flags);
