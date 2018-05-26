@@ -808,7 +808,10 @@ static void parse_sec_attr_44(sc_file_t *file, const u8 *buf, size_t len)
 
 			/* Get KeyNumber if available */
 			if(iKeyLen) {
-				int iSC = buf[iOffset+iACLen];
+				int iSC;
+				if (len < 1+iACLen)
+					break;
+				iSC = buf[iOffset+iACLen];
 
 				switch( (iSC>>5) & 0x03 ){
 				case 0:
@@ -827,11 +830,15 @@ static void parse_sec_attr_44(sc_file_t *file, const u8 *buf, size_t len)
 
 			/* Get PinNumber if available */
 			if (iACLen > (1+iParmLen+iKeyLen)) {  /* check via total length if pin is present */
+				if (len < 1+1+1+iParmLen)
+					break;
 				iKeyRef = buf[iOffset+1+1+iParmLen];  /* PTL + AM-header + parameter-bytes */
 				iMethod = SC_AC_CHV;
 			}
 
 			/* Convert SETCOS command to OpenSC command group */
+			if (len < 1+2)
+				break;
 			switch(buf[iOffset+2]){
 			case 0x2A:			/* crypto operation */
 				iOperation = SC_AC_OP_CRYPTO;
@@ -865,7 +872,10 @@ static void parse_sec_attr_44(sc_file_t *file, const u8 *buf, size_t len)
 			iPinCount = iACLen - 1;		
 
 			if (buf[iOffset] & 0x20) {
-				int iSC = buf[iOffset + iACLen];
+				int iSC;
+				if (len < 1 + iACLen)
+					break;
+				iSC = buf[iOffset + iACLen];
 
 				switch( (iSC>>5) & 0x03 ) {
 				case 0:
@@ -886,6 +896,8 @@ static void parse_sec_attr_44(sc_file_t *file, const u8 *buf, size_t len)
 
 			/* Pin present ? */
 			if ( iPinCount > 0 ) {
+				if (len < 1 + 2)
+					break;
 				iKeyRef = buf[iOffset + 2];	/* pin ref */
 				iMethod = SC_AC_CHV;
 			}
