@@ -83,7 +83,7 @@ sc_simpletlv_read_tag(u8 **buf, size_t buflen, u8 *tag_out, size_t *taglen)
 	if (left < 2) {
 		return SC_ERROR_INVALID_TLV_OBJECT;
 	}
-	*tag = *p;
+	tag = *p;
 	p++;
 	len = *p;
 	p++;
