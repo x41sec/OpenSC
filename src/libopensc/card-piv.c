@@ -1596,7 +1596,7 @@ static int piv_general_mutual_authenticate(sc_card_t *card,
 	int N;
 	int locked = 0;
 	u8  *rbuf = NULL;
-	size_t rbuflen;
+	size_t rbuflen = 0;
 	u8 *nonce = NULL;
 	size_t nonce_len;
 	u8 *p;
@@ -2331,16 +2331,29 @@ static int piv_validate_general_authentication(sc_card_t *card,
 	const u8 *body;
 	size_t bodylen;
 	unsigned int real_alg_id;
+	size_t t1;
 
-	u8 sbuf[4096]; /* needs work. for 3072 keys, needs 384+10 or so */
+	u8 *sbuf = NULL;
+	size_t sbuflen;
 	u8 *rbuf = NULL;
 	size_t rbuflen;
 
 	SC_FUNC_CALLED(card->ctx, SC_LOG_DEBUG_VERBOSE);
-
+ 
 	/* should assume large send data */
+
 	p = sbuf;
-	put_tag_and_len(0x7c, (2 + put_tag_and_len(0, datalen, NULL)) , &p);
+	t1 =  put_tag_and_len(0x82, 0, NULL) + put_tag_and_len(0, datalen, NULL);
+	sbuflen = put_tag_and_len(0x7c, t1, NULL);
+
+	sbuf = malloc(sbuflen);
+	if (!sbuf) {
+		r = SC_ERROR_OUT_OF_MEMORY;
+		goto err;
+	}
+
+	p = sbuf;
+	put_tag_and_len(0x7c, t1 , &p);
 	put_tag_and_len(0x82, 0, &p);
 	if (priv->operation == SC_SEC_OPERATION_DERIVE
 			&& priv->algorithm == SC_ALGORITHM_EC)
@@ -2378,13 +2391,17 @@ static int piv_validate_general_authentication(sc_card_t *card,
 
 		if (body) {
 			tag = sc_asn1_find_tag(card->ctx, body,  bodylen, 0x82, &taglen);
-			if (tag) {
+			if (tag && out && outlen >= taglen) {
 				memcpy(out, tag, taglen);
 				r = taglen;
 			}
 		} else
 			r = SC_ERROR_INVALID_DATA;
 	}
+
+err:
+	if (sbuf)
+		free(sbuf);
 
 	if (rbuf)
 		free(rbuf);
