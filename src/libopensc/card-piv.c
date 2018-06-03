@@ -2339,7 +2339,7 @@ static int piv_validate_general_authentication(sc_card_t *card,
 	size_t rbuflen;
 
 	SC_FUNC_CALLED(card->ctx, SC_LOG_DEBUG_VERBOSE);
- 
+
 	/* should assume large send data */
 
 	p = sbuf;
@@ -2386,15 +2386,15 @@ static int piv_validate_general_authentication(sc_card_t *card,
 	r = piv_general_io(card, 0x87, real_alg_id, priv->key_ref,
 			sbuf, p - sbuf, &rbuf, &rbuflen);
 
-	if ( r >= 0) {
-	 	body = sc_asn1_find_tag(card->ctx, rbuf, rbuflen, 0x7c, &bodylen);
-
+	if (r >= 0) {
+		body = sc_asn1_find_tag(card->ctx, rbuf, rbuflen, 0x7c, &bodylen);
 		if (body) {
 			tag = sc_asn1_find_tag(card->ctx, body,  bodylen, 0x82, &taglen);
 			if (tag && out && outlen >= taglen) {
 				memcpy(out, tag, taglen);
 				r = taglen;
-			}
+			} else
+				r = SC_ERROR_INVALID_DATA;
 		} else
 			r = SC_ERROR_INVALID_DATA;
 	}
