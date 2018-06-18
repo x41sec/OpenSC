@@ -2980,10 +2980,7 @@ static int piv_match_card(sc_card_t *card)
 
 static int piv_match_card_continued(sc_card_t *card)
 {
-	int i, i7e, k;
-	size_t j;
-	u8 *p, *pe;
-//	sc_file_t aidfile;
+	int i;
 	int type  = -1;
 	piv_private_data_t *priv = NULL;
 	int saved_type = card->type;
