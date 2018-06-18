@@ -938,7 +938,7 @@ decrypt_response(struct sc_card *card, unsigned char *in, size_t inlen, unsigned
 		return -1;
 	}
 
-	if (cipher_len < 2 || in+i+cipher_len > inlen || cipher_len > sizeof plaintext)
+	if (cipher_len < 2 || i+cipher_len > inlen || cipher_len > sizeof plaintext)
 		return -1;
 
 	/* decrypt */
