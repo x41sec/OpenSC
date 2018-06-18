@@ -476,6 +476,9 @@ auth_select_file(struct sc_card *card, const struct sc_path *in_path,
 
 	memcpy(&path, in_path, sizeof(struct sc_path));
 
+	if (!auth_current_df)
+		return SC_ERROR_OBJECT_NOT_FOUND;
+
 	sc_log(card->ctx, "in_path; type=%d, path=%s, out %p",
 			in_path->type, sc_print_path(in_path), file_out);
 	sc_log(card->ctx, "current path; type=%d, path=%s",
