@@ -903,9 +903,9 @@ epass2003_sm_wrap_apdu(struct sc_card *card, struct sc_apdu *plain, struct sc_ap
  * SW12(TLV)=0x99|0x02|SW1+SW2
  * MAC(TLV)=0x8e|0x08|MAC */
 static int
-decrypt_response(struct sc_card *card, unsigned char *in, unsigned char *out, size_t * out_len)
+decrypt_response(struct sc_card *card, unsigned char *in, size_t inlen, unsigned char *out, size_t * out_len)
 {
-	size_t in_len;
+	size_t cipher_len;
 	size_t i;
 	unsigned char iv[16] = { 0 };
 	unsigned char plaintext[4096] = { 0 };
@@ -922,40 +922,40 @@ decrypt_response(struct sc_card *card, unsigned char *in, unsigned char *out, si
 
 	/* parse cipher length */
 	if (0x01 == in[2] && 0x82 != in[1]) {
-		in_len = in[1];
+		cipher_len = in[1];
 		i = 3;
 	}
 	else if (0x01 == in[3] && 0x81 == in[1]) {
-		in_len = in[2];
+		cipher_len = in[2];
 		i = 4;
 	}
 	else if (0x01 == in[4] && 0x82 == in[1]) {
-		in_len = in[2] * 0x100;
-		in_len += in[3];
+		cipher_len = in[2] * 0x100;
+		cipher_len += in[3];
 		i = 5;
 	}
 	else {
 		return -1;
 	}
 
-	if (in_len < 2)
+	if (cipher_len < 2 || in+i+cipher_len > inlen || cipher_len > sizeof plaintext)
 		return -1;
 
 	/* decrypt */
 	if (KEY_TYPE_AES == exdata->smtype)
-		aes128_decrypt_cbc(exdata->sk_enc, 16, iv, &in[i], in_len - 1, plaintext);
+		aes128_decrypt_cbc(exdata->sk_enc, 16, iv, &in[i], cipher_len - 1, plaintext);
 	else
-		des3_decrypt_cbc(exdata->sk_enc, 16, iv, &in[i], in_len - 1, plaintext);
+		des3_decrypt_cbc(exdata->sk_enc, 16, iv, &in[i], cipher_len - 1, plaintext);
 
 	/* unpadding */
-	while (0x80 != plaintext[in_len - 2] && (in_len - 2 > 0))
-		in_len--;
+	while (0x80 != plaintext[cipher_len - 2] && (cipher_len - 2 > 0))
+		cipher_len--;
 
-	if (2 == in_len)
+	if (2 == cipher_len)
 		return -1;
 
-	memcpy(out, plaintext, in_len - 2);
-	*out_len = in_len - 2;
+	memcpy(out, plaintext, cipher_len - 2);
+	*out_len = cipher_len - 2;
 	return 0;
 }
 
@@ -977,7 +977,7 @@ epass2003_sm_unwrap_apdu(struct sc_card *card, struct sc_apdu *sm, struct sc_apd
 	r = sc_check_sw(card, sm->sw1, sm->sw2);
 	if (r == SC_SUCCESS) {
 		if (exdata->sm) {
-			if (0 != decrypt_response(card, sm->resp, plain->resp, &len))
+			if (0 != decrypt_response(card, sm->resp, sm->resplen, plain->resp, &len))
 				return SC_ERROR_CARD_CMD_FAILED;
 		}
 		else {
