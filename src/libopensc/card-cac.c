@@ -756,6 +756,8 @@ static int cac_read_binary(sc_card_t *card, unsigned int idx,
 
 			/* don't crash on bad data */
 			if (val_len < len) {
+				sc_log(card->ctx, "Received too long value %"SC_FORMAT_LEN_SIZE_T"u, "
+				    "while only %"SC_FORMAT_LEN_SIZE_T"u left. Truncating", len, val_len);
 				len = val_len;
 			}
 			/* if we run out of return space, truncate */
@@ -783,8 +785,11 @@ static int cac_read_binary(sc_card_t *card, unsigned int idx,
 			tl_head_len = tl_ptr - tl_start;
 
 			/* incomplete value */
-			if (val_len < len)
+			if (val_len < len) {
+				sc_log(card->ctx, "Read incomplete value %"SC_FORMAT_LEN_SIZE_T"u, "
+				    "while only %"SC_FORMAT_LEN_SIZE_T"u left", len, val_len);
 				break;
+			}
 
 			if (tag == CAC_TAG_CERTIFICATE) {
 				cert_len = len;
