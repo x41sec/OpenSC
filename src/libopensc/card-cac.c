@@ -746,7 +746,8 @@ static int cac_read_binary(sc_card_t *card, unsigned int idx,
 				val_len -= len, tlv_len -= len, val_ptr += len, tlv_ptr += len) {
 			/* get the tag and the length */
 			tl_start = tl_ptr;
-			if (sc_simpletlv_read_tag(&tl_ptr, tl_len, &tag, &len) != SC_SUCCESS)
+			r = sc_simpletlv_read_tag(&tl_ptr, tl_len, &tag, &len);
+			if (r != SC_SUCCESS && r != SC_ERROR_TLV_END_OF_CONTENTS)
 				break;
 			tl_head_len = (tl_ptr - tl_start);
 			sc_simpletlv_put_tag(tag, len, tlv_ptr, tlv_len, &tlv_ptr);
@@ -776,7 +777,8 @@ static int cac_read_binary(sc_card_t *card, unsigned int idx,
 		for (tl_ptr = tl, val_ptr = val; tl_len >= 2;
 		    val_len -= len, val_ptr += len, tl_len -= tl_head_len) {
 			tl_start = tl_ptr;
-			if (sc_simpletlv_read_tag(&tl_ptr, tl_len, &tag, &len) != SC_SUCCESS)
+			r = sc_simpletlv_read_tag(&tl_ptr, tl_len, &tag, &len);
+			if (r != SC_SUCCESS && r != SC_ERROR_TLV_END_OF_CONTENTS)
 				break;
 			tl_head_len = tl_ptr - tl_start;
 
