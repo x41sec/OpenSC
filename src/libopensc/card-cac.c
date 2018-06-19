@@ -803,9 +803,6 @@ static int cac_read_binary(sc_card_t *card, unsigned int idx,
 			if (tag == CAC_TAG_MSCUID) {
 				sc_log_hex(card->ctx, "MSCUID", val_ptr, len);
 			}
-			if ((val_len < len) || (tl_len < tl_head_len)) {
-				break;
-			}
 		}
 		/* if the info byte is 1, then the cert is compressed, decompress it */
 		if ((cert_type & 0x3) == 1) {
