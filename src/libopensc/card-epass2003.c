@@ -1609,12 +1609,12 @@ epass2003_set_security_env(struct sc_card *card, const sc_security_env_t * env, 
 	{
 		apdu.p2 = 0xB6;
 		exdata->currAlg = SC_ALGORITHM_EC;
-		if(env->algorithm_flags | SC_ALGORITHM_ECDSA_HASH_SHA1)
+		if(env->algorithm_flags & SC_ALGORITHM_ECDSA_HASH_SHA1)
 		{
 			sbuf[2] = 0x91;
 			exdata->ecAlgFlags = SC_ALGORITHM_ECDSA_HASH_SHA1;
 		}
-		else if (env->algorithm_flags | SC_ALGORITHM_ECDSA_HASH_SHA256)
+		else if (env->algorithm_flags & SC_ALGORITHM_ECDSA_HASH_SHA256)
 		{
 			sbuf[2] = 0x92;
 			exdata->ecAlgFlags = SC_ALGORITHM_ECDSA_HASH_SHA256;
@@ -1697,7 +1697,7 @@ static int epass2003_decipher(struct sc_card *card, const u8 * data, size_t data
 
 	if(exdata->currAlg == SC_ALGORITHM_EC)
 	{
-		if(exdata->ecAlgFlags | SC_ALGORITHM_ECDSA_HASH_SHA1)
+		if(exdata->ecAlgFlags & SC_ALGORITHM_ECDSA_HASH_SHA1)
 		{
 			r = hash_data(data, datalen, sbuf, SC_ALGORITHM_ECDSA_HASH_SHA1);
 			LOG_TEST_RET(card->ctx, r, "hash_data failed"); 
@@ -1706,7 +1706,7 @@ static int epass2003_decipher(struct sc_card *card, const u8 * data, size_t data
 			apdu.lc = 0x14;
 			apdu.datalen = 0x14;
 		}
-		else if (exdata->ecAlgFlags | SC_ALGORITHM_ECDSA_HASH_SHA256)
+		else if (exdata->ecAlgFlags & SC_ALGORITHM_ECDSA_HASH_SHA256)
 		{
 			r = hash_data(data, datalen, sbuf, SC_ALGORITHM_ECDSA_HASH_SHA256);
 			LOG_TEST_RET(card->ctx, r, "hash_data failed");
@@ -2253,7 +2253,7 @@ hash_data(const unsigned char *data, size_t datalen, unsigned char *hash, unsign
 	if ((NULL == data) || (NULL == hash))
 		return SC_ERROR_INVALID_ARGUMENTS;
 
-	if(mechanismType | SC_ALGORITHM_ECDSA_HASH_SHA1)
+	if(mechanismType & SC_ALGORITHM_ECDSA_HASH_SHA1)
 	{
 		unsigned char data_hash[24] = { 0 };
 		size_t len = 0;
@@ -2263,7 +2263,7 @@ hash_data(const unsigned char *data, size_t datalen, unsigned char *hash, unsign
 		memcpy(&data_hash[20], &len, 4);
 		memcpy(hash, data_hash, 24);
 	}
-	else if(mechanismType | SC_ALGORITHM_ECDSA_HASH_SHA256)
+	else if(mechanismType & SC_ALGORITHM_ECDSA_HASH_SHA256)
 	{
 		unsigned char data_hash[36] = { 0 };
 		size_t len = 0;
@@ -2585,7 +2585,7 @@ epass2003_get_challenge(sc_card_t *card, u8 *rnd, size_t len)
 
 	LOG_FUNC_CALLED(card->ctx);
 
-	r = iso_ops->get_challenge(card, rnd, sizeof rbuf);
+	r = iso_ops->get_challenge(card, rbuf, sizeof rbuf);
 	LOG_TEST_RET(card->ctx, r, "GET CHALLENGE cmd failed");
 
 	if (len < (size_t) r) {

@@ -960,12 +960,13 @@ static int cac_get_challenge(sc_card_t *card, u8 *rnd, size_t len)
 {
 	/* CAC requires 8 byte response */
 	u8 rbuf[8];
+	u8 *rbufp = &rbuf[0];
 	size_t out_len = sizeof rbuf;
 	int r;
 
 	LOG_FUNC_CALLED(card->ctx);
 
-	r = cac_apdu_io(card, 0x84, 0x00, 0x00, NULL, 0, (u8 **) &rbuf, &out_len);
+	r = cac_apdu_io(card, 0x84, 0x00, 0x00, NULL, 0, &rbufp, &out_len);
 	LOG_TEST_RET(card->ctx, r, "Could not get challenge");
 
 	if (len < out_len) {
@@ -1232,8 +1233,10 @@ static int cac_get_properties(sc_card_t *card, cac_properties_t *prop)
 			}
 			sc_debug(card->ctx, SC_LOG_DEBUG_VERBOSE,
 			    "TAG: TV Object nr. %"SC_FORMAT_LEN_SIZE_T"u", i);
-			if (i >= CAC_MAX_OBJECTS)
+			if (i >= CAC_MAX_OBJECTS) {
+				free(rbuf);
 				return SC_SUCCESS;
+			}
 
 			if (cac_parse_properties_object(card, tag, val, len,
 			    &prop->objects[i]) == SC_SUCCESS)
@@ -1248,8 +1251,10 @@ static int cac_get_properties(sc_card_t *card, cac_properties_t *prop)
 			}
 			sc_debug(card->ctx, SC_LOG_DEBUG_VERBOSE,
 			    "TAG: PKI Object nr. %"SC_FORMAT_LEN_SIZE_T"u", i);
-			if (i >= CAC_MAX_OBJECTS)
+			if (i >= CAC_MAX_OBJECTS) {
+				free(rbuf);
 				return SC_SUCCESS;
+			}
 
 			if (cac_parse_properties_object(card, tag, val, len,
 			    &prop->objects[i]) == SC_SUCCESS)
@@ -1263,6 +1268,7 @@ static int cac_get_properties(sc_card_t *card, cac_properties_t *prop)
 			break;
 		}
 	}
+	free(rbuf);
 	/* sanity */
 	if (i != prop->num_objects)
 		return SC_ERROR_INVALID_DATA;
