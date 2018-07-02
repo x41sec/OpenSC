@@ -3028,12 +3028,13 @@ static int piv_match_card_continued(sc_card_t *card)
 			 *   73 66 74 65 20 63 64 31 34 34
 			 * will check for 73 66 74 65
 			 */
-			else if (card->reader->atr_info.hist_bytes_len >= 4 &&
-					!(memcmp(card->reader->atr_info.hist_bytes, "sfte", 4))) {
+			else if (card->reader->atr_info.hist_bytes_len >= 4
+					&& !(memcmp(card->reader->atr_info.hist_bytes, "sfte", 4))) {
 				type = SC_CARD_TYPE_PIV_II_GI_DE;
 			}
 
-			else if (card->reader->atr_info.hist_bytes[0] == 0x80u) { /* compact TLV */
+			else if (card->reader->atr_info.hist_bytes_len > 0
+					&& card->reader->atr_info.hist_bytes[0] == 0x80u) { /* compact TLV */
 				size_t datalen;
 				const u8 *data = sc_compacttlv_find_tag(card->reader->atr_info.hist_bytes + 1,
 									card->reader->atr_info.hist_bytes_len - 1,
