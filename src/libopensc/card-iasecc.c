@@ -2508,7 +2508,7 @@ iasecc_get_serialnr(struct sc_card *card, struct sc_serial_number *serial)
 	/* the current implementation doesn't perform any bounds check when parsing
 	 * the serial number. Hence, we disable this code until someone has time to
 	 * fix this. */
-	LOG_FUNC_RETURN(ctx, SC_ERROR_NOT_SUPPORTED);
+	LOG_FUNC_RETURN(card->ctx, SC_ERROR_NOT_SUPPORTED);
 #else
 	struct sc_context *ctx = card->ctx;
 	struct sc_iin *iin = &card->serialnr.iin;
